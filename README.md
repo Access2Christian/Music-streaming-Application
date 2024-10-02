@@ -70,7 +70,7 @@ The frontend is a Flutter application that provides a user interface for the mus
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/music_streaming_app.git
+   git clone https://github.com/Access2Christian/Music-streaming-Application.git
    cd music_streaming_app
    ```
 

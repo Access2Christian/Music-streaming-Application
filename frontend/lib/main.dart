@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'screens/home_screen.dart' as home; // Importing HomeScreen with an alias for clarity
 import 'screens/register_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/now_playing_screen.dart';
+import 'screens/login_screen.dart' as login; // Importing LoginScreen with an alias for clarity
 import 'screens/playlist_screen.dart';
-import 'models/music.dart'; // Import your Music model
-import 'services/api_service.dart'; // Import your API service
+import 'screens/settings_screen.dart';
+import 'screens/profile_screen.dart';
+import 'models/music.dart';
+import 'services/api_service.dart';
+import 'widgets/search_field.dart';
 
-// Main function to run the app
 void main() {
-  runApp(const MyApp());
+  runApp(const MyApp()); // Entry point of the app
 }
 
 class MyApp extends StatelessWidget {
@@ -18,27 +19,39 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Music Streaming App',
+      title: 'Music Streaming App', // Title for the application
       theme: ThemeData(
-        primaryColor: const Color.fromARGB(255, 232, 234, 235),
-        colorScheme: const ColorScheme.dark(
-          primary: Color.fromARGB(103, 247, 243, 243),
-          secondary: Color.fromARGB(255, 150, 158, 238),
+        primaryColor: const Color(0xFF4A90E2), // Updated primary color to match the theme of the app
+        colorScheme: ColorScheme.light(
+          primary: const Color(0xFF4A90E2), // Consistent primary color for light theme
+          secondary: const Color(0xFFC2B280), // Secondary color for accents
         ),
-        scaffoldBackgroundColor: const Color(0xFF121212),
+        scaffoldBackgroundColor: const Color(0xFFECEFF1), // Set the background color to light gray
         textTheme: const TextTheme(
           headlineMedium: TextStyle(
-              fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-          bodyMedium: TextStyle(fontSize: 16, color: Colors.white70),
-          bodySmall: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF4A90E2), // Headline color to match primary color
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF6B5B3A), // Color for medium body text
+          ),
+          bodySmall: TextStyle(
+            color: Color(0xFF4A90E2), // Color for small body text
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
-      home: const MainScreen(),
-      debugShowCheckedModeBanner: false,
+      home: const MainScreen(), // Set the main screen of the app
+      debugShowCheckedModeBanner: false, // Disable the debug banner
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/playlist': (context) => const PlaylistScreen(),
+        '/home': (context) => home.HomeScreen(categorizedMusic: {}, onPlay: (music) {}), // HomeScreen route
+        '/login': (context) => const login.LoginScreen(), // LoginScreen route
+        '/register': (context) => const RegisterScreen(), // RegisterScreen route
+        '/playlist': (context) => const PlaylistScreen(), // PlaylistScreen route
+        '/settings': (context) => const SettingsScreen(), // SettingsScreen route
+        '/profile': (context) => const ProfileScreen(), // ProfileScreen route
       },
     );
   }
@@ -52,61 +65,28 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0; // Track the current index for the bottom navigation
-  late Future<List<Music>> _musicList; // Future for fetching music
+  int _currentIndex = 0; // To track the current index of the bottom navigation bar
+  late Future<List<Music>> _musicList; // To hold the future music list
+  String _searchQuery = ''; // To hold the current search query
 
   @override
   void initState() {
     super.initState();
-    _musicList = ApiService.fetchMusic(); // Fetch music from API
+    _musicList = ApiService.fetchMusic(); // Fetch music data when the widget is initialized
   }
 
-  void _onDrawerItemTapped(int index) {
+  void _onNavItemTapped(int index) {
     setState(() {
-      _currentIndex = index;
+      _currentIndex = index; // Update the current index based on user selection
+      if (index == 0) {
+        Navigator.pushNamed(context, '/home'); // Navigate to HomeScreen
+      }
     });
   }
 
-  void _onPlay(Music music) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => NowPlayingScreen(music: music), // Ensure NowPlayingScreen accepts Music
-      ),
-    );
-  }
-
-  void _showSearchDialog(BuildContext context) {
-    TextEditingController searchController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Search Music'),
-          content: TextField(
-            controller: searchController,
-            decoration: const InputDecoration(hintText: 'Enter artist name'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                _searchMusic(searchController.text); // Call search function
-              },
-              child: const Text('Search'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _searchMusic(String artist) {
+  void _handleSearch(String query) {
     setState(() {
-      _musicList = ApiService.fetchMusicByArtist(artist); // Update to fetch music by artist
+      _searchQuery = query; // Update the search query and rebuild the UI
     });
   }
 
@@ -114,144 +94,116 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Music Streaming App'),
+        title: const Text('Music Streaming App'), // Title of the app bar
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => _showSearchDialog(context), // Call search dialog
-          ),
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/login');
+          // Adding a menu for navigation to Login, Register, and Settings
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'Login':
+                  Navigator.pushNamed(context, '/login'); // Navigate to Login
+                  break;
+                case 'Register':
+                  Navigator.pushNamed(context, '/register'); // Navigate to Register
+                  break;
+                case 'Settings':
+                  Navigator.pushNamed(context, '/settings'); // Navigate to Settings
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return {'Login', 'Register', 'Settings'}.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(
+                    choice,
+                    style: const TextStyle(fontSize: 14), // Style for menu items
+                  ),
+                );
+              }).toList();
             },
           ),
         ],
       ),
-      drawer: CustomDrawer(onItemTap: _onDrawerItemTapped),
-      body: _currentIndex == 0
-          ? FutureBuilder<List<Music>>(
-              future: _musicList,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No music available.'));
-                } else {
-                  // Assuming you need to categorize the music list
-                  Map<String, List<Music>> categorizedMusic = {
-                    'All Music': snapshot.data!, // or categorize as needed
-                  };
-                  return HomeScreen(
-                    categorizedMusic: categorizedMusic, // Pass the categorized music
-                    onPlay: _onPlay, // Pass the onPlay function
-                  );
-                }
-              },
-            )
-          : _currentIndex == 1
-              ? const Center(child: Text('Select a song to play')) // Placeholder for NowPlaying
-              : const PlaylistScreen(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.play_arrow),
-            label: 'Now Playing',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Playlist',
-          ),
-        ],
-        selectedItemColor: const Color.fromARGB(255, 141, 139, 241),
-      ),
-    );
-  }
-}
-
-class CustomDrawer extends StatelessWidget {
-  final Function(int) onItemTap;
-
-  const CustomDrawer({Key? key, required this.onItemTap}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(right: Radius.circular(20)),
-      ),
-      child: ListView(
-        padding: EdgeInsets.zero,
+      body: Column(
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 163, 159, 226),
-            ),
-            child: Text(
-              'Music Streaming',
-              style: TextStyle(color: Colors.white, fontSize: 24),
-            ),
+          SearchField(
+            onSearch: _handleSearch, // Pass the search handler
           ),
-          DrawerListTile(
-            title: 'Home',
-            onTap: () => _navigateToScreen(context, 0),
-          ),
-          DrawerListTile(
-            title: 'Now Playing',
-            onTap: () => _navigateToScreen(context, 1),
-          ),
-          DrawerListTile(
-            title: 'Playlist',
-            onTap: () => _navigateToScreen(context, 2),
-          ),
-          ListTile(
-            title: const Text('Register'),
-            onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushNamed('/register');
-            },
+          Expanded(
+            child: _currentIndex == 0
+                ? FutureBuilder<List<Music>>(
+                    future: _musicList, // Future to fetch the music list
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator()); // Show loading indicator while fetching data
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error, color: Colors.red, size: 50), // Error icon
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error fetching music: ${snapshot.error}', // Display error message
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _musicList = ApiService.fetchMusic(); // Retry fetching music
+                                  });
+                                },
+                                child: const Text('Retry'), // Button to retry fetching music
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No music available.')); // Message for no music data
+                      } else {
+                        // Filter the music based on the search query
+                        List<Music> filteredMusic = snapshot.data!
+                            .where((music) =>
+                                music.title.toLowerCase().contains(_searchQuery.toLowerCase())) // Filtering logic
+                            .toList();
+                        return home.HomeScreen(
+                          categorizedMusic: {'All Music': filteredMusic}, // Pass categorized music to HomeScreen
+                          onPlay: (music) {
+                            print('Playing ${music.title} by ${music.artist}'); // Handle music play action
+                          },
+                        );
+                      }
+                    },
+                  )
+                : _currentIndex == 1
+                    ? const Center(child: Text('Now Playing')) // Placeholder for Now Playing screen
+                    : _currentIndex == 2
+                        ? const PlaylistScreen() // Navigate to Playlist screen
+                        : const SettingsScreen(), // Navigate to Settings screen
           ),
         ],
       ),
-    );
-  }
-
-  void _navigateToScreen(BuildContext context, int screenIndex) {
-    Navigator.of(context).pop(); // Close the drawer
-    onItemTap(screenIndex); // Use the callback to update the index
-  }
-}
-
-class DrawerListTile extends StatelessWidget {
-  final String title;
-  final VoidCallback onTap;
-
-  const DrawerListTile({
-    required this.title,
-    required this.onTap,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(title),
-      onTap: onTap,
-      textColor: Colors.white, // Set text color to white
-      tileColor: const Color.fromARGB(255, 39, 38, 38), // Set tile color to match the theme
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home), // Icon for Home tab
+            label: 'Home', // Label for Home tab
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.play_arrow), // Icon for Now Playing tab
+            label: 'Now Playing', // Label for Now Playing tab
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.playlist_play), // Icon for Playlist tab
+            label: 'Playlist', // Label for Playlist tab
+          ),
+        ],
+        currentIndex: _currentIndex, // Current index for BottomNavigationBar
+        onTap: _onNavItemTapped, // Handle tap events on the navigation items
+      ),
     );
   }
 }

@@ -46,10 +46,10 @@ class _MusicCardState extends State<MusicCard> {
           isPlaying = true; // Update playing state
         });
       } else {
-        _showSnackBar('Audio URL is not available');
+        _showSnackBar('Audio URL is not available'); // Show error for missing URL
       }
     } catch (error) {
-      _showSnackBar('Error playing music: $error');
+      _showSnackBar('Error playing music: $error'); // Show error message
     } finally {
       setState(() {
         isLoading = false; // Stop loading
@@ -58,7 +58,7 @@ class _MusicCardState extends State<MusicCard> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message))); // Show snackbar
   }
 
   @override
@@ -68,12 +68,12 @@ class _MusicCardState extends State<MusicCard> {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
         decoration: BoxDecoration(
-          color: const Color(0xFF1D1D1D), // Card background color
+          color: const Color(0xFFE3F2FD), // Light gray background for card
           borderRadius: BorderRadius.circular(15), // Rounded corners
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.4), // Soft shadow
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.2), // Subtle shadow
+              blurRadius: 5,
               offset: const Offset(0, 5),
             ),
           ],
@@ -98,14 +98,14 @@ class _MusicCardState extends State<MusicCard> {
           ),
           title: Text(
             widget.music.title,
-            style: Theme.of(context).textTheme.titleLarge, // Updated to headline6 for better consistency
+            style: Theme.of(context).textTheme.titleLarge, // Title style
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 widget.music.artist,
-                style: Theme.of(context).textTheme.bodyLarge, // Updated to bodyText2 for better consistency
+                style: Theme.of(context).textTheme.bodyLarge, // Artist style
               ),
               Text(
                 _formatDuration(widget.music.duration), // Format duration
@@ -118,10 +118,10 @@ class _MusicCardState extends State<MusicCard> {
               : IconButton(
                   icon: Icon(
                     isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: const Color(0xFF4A90E2), // Soft blue icon color
                     size: 40,
                   ),
-                  onPressed: isPlaying ? _audioPlayer.pause : _playMusic,
+                  onPressed: isPlaying ? _audioPlayer.pause : _playMusic, // Play or pause action
                 ),
         ),
       ),
@@ -132,8 +132,8 @@ class _MusicCardState extends State<MusicCard> {
   String _formatDuration(String? duration) {
     if (duration == null || !duration.contains('.')) return '0:00'; // Basic validation
     final parts = duration.split('.');
-    final minutes = int.parse(parts[0]);
-    final seconds = (double.parse(parts[1]) * 60).round();
+    final minutes = int.tryParse(parts[0]) ?? 0;
+    final seconds = (double.tryParse(parts[1])?.round() ?? 0);
     return '$minutes:${seconds.toString().padLeft(2, '0')}'; // Format as "MM:SS"
   }
 }

@@ -14,7 +14,7 @@ class _SearchFieldState extends State<SearchField> {
   bool isLoading = false; // To track loading state
 
   void searchMusic() async {
-    String query = searchController.text.trim();
+    String query = searchController.text.trim(); // Get search query
 
     if (query.isNotEmpty) {
       setState(() {
@@ -23,7 +23,7 @@ class _SearchFieldState extends State<SearchField> {
 
       // Simulate a search function (replace with your actual search API)
       await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
-      print('Searching for: $query');
+      print('Searching for: $query'); // Print the search query for debugging
 
       // Notify parent widget of the search query
       widget.onSearch(query);
@@ -35,8 +35,7 @@ class _SearchFieldState extends State<SearchField> {
   }
 
   void clearSearch() {
-    searchController.clear();
-    // Optionally, update the UI to show all music or reset the search results
+    searchController.clear(); // Clear the search field
     widget.onSearch(''); // Notify parent to clear search results
   }
 
@@ -47,12 +46,12 @@ class _SearchFieldState extends State<SearchField> {
       child: TextField(
         key: const Key('searchField'),
         controller: searchController,
-        style: const TextStyle(color: Colors.white), // Text color
+        style: const TextStyle(color: Colors.black), // Text color changed to black for contrast
         decoration: InputDecoration(
           hintText: "Search for a song...",
-          hintStyle: const TextStyle(color: Colors.white54), // Hint color
+          hintStyle: const TextStyle(color: Colors.black54), // Hint color changed to black54
           filled: true,
-          fillColor: const Color(0xFF1D1D1D), // Dark background for search
+          fillColor: const Color(0xFFE3F2FD), // Light gray background for search field
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0), // Rounded corners
             borderSide: BorderSide.none,
@@ -75,7 +74,7 @@ class _SearchFieldState extends State<SearchField> {
                   key: const Key('searchButton'),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white), // Clear icon
+                  icon: const Icon(Icons.clear, color: Colors.black), // Clear icon color changed to black
                   onPressed: clearSearch,
                   key: const Key('clearButton'),
                 ),

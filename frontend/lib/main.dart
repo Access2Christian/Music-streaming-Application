@@ -72,7 +72,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _musicList = ApiService.fetchMusic(); // Fetch music data when the widget is initialized
+    _musicList = ApiService.fetchShazamCharts(); // Fetch music data when the widget is initialized
   }
 
   void _onNavItemTapped(int index) {
@@ -153,7 +153,7 @@ class _MainScreenState extends State<MainScreen> {
                               ElevatedButton(
                                 onPressed: () {
                                   setState(() {
-                                    _musicList = ApiService.fetchMusic(); // Retry fetching music
+                                    _musicList = ApiService.fetchShazamCharts(); // Retry fetching music
                                   });
                                 },
                                 child: const Text('Retry'), // Button to retry fetching music

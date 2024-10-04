@@ -22,9 +22,9 @@ class MyApp extends StatelessWidget {
       title: 'Music Streaming App', // Title for the application
       theme: ThemeData(
         primaryColor: const Color(0xFF4A90E2), // Updated primary color to match the theme of the app
-        colorScheme: ColorScheme.light(
-          primary: const Color(0xFF4A90E2), // Consistent primary color for light theme
-          secondary: const Color(0xFFC2B280), // Secondary color for accents
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF4A90E2), // Consistent primary color for light theme
+          secondary: Color(0xFFC2B280), // Secondary color for accents
         ),
         scaffoldBackgroundColor: const Color(0xFFECEFF1), // Set the background color to light gray
         textTheme: const TextTheme(
@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
       home: const MainScreen(), // Set the main screen of the app
       debugShowCheckedModeBanner: false, // Disable the debug banner
       routes: {
-        '/home': (context) => home.HomeScreen(categorizedMusic: {}, onPlay: (music) {}), // HomeScreen route
+        '/home': (context) => home.HomeScreen(categorizedMusic: const {}, onPlay: (music) {}), // HomeScreen route
         '/login': (context) => const login.LoginScreen(), // LoginScreen route
         '/register': (context) => const RegisterScreen(), // RegisterScreen route
         '/playlist': (context) => const PlaylistScreen(), // PlaylistScreen route

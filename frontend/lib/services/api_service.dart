@@ -6,7 +6,7 @@ import 'dart:async'; // To handle TimeoutException
 
 class ApiService {
   // Define API keys and URLs
-  static const String lastFmApiKey = 'ced6c0e405a475a7684592655bccbc17'; // Last.fm API key
+  static const String lastFmApiKey = 'a12072427794c5802bdedad6ea0dfc63'; // Last.fm API key
   static const String lastFmBaseUrl = 'http://ws.audioscrobbler.com/2.0/'; // Base URL for Last.fm API
   static const String baseApiUrl = 'http://127.0.0.1:8000/api/'; // Base API URL for our Django backend
 
@@ -80,10 +80,10 @@ class ApiService {
     }
   }
 
-  /// Fetch playlists from the Django backend API
-  /// This method fetches a list of playlists created in the backend.
+  /// Fetch playlists the LastFM API
+  /// This method fetches a list of playlists created in LastFM.
   static Future<List<Playlist>> fetchPlaylists() async {
-    const url = '$baseApiUrl/playlists/'; // Adjust this endpoint according to your backend
+    const url = '$lastFmBaseUrl?method=chart.getTopTracks&api_key=$lastFmApiKey&format=json'; // API Url
 
     try {
       // Make the API call and wait for response (with 10-second timeout)

@@ -21,16 +21,19 @@ class ApiService {
   /// Fetch popular music from Last.fm
   /// This method makes a GET request to Last.fm and returns a list of popular music tracks.
   static Future<List<Music>> fetchMusic() async {
-    const url = '$lastFmBaseUrl?method=chart.gettoptracks&api_key=$lastFmApiKey&format=json'; // Complete API URL
+    const url = '$lastFmBaseUrl?method=chart.getTopTracks&api_key=$lastFmApiKey&format=json'; // Complete API URL
 
     try {
       // Make the API call and wait for response (with 10-second timeout)
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
       
       _handleHttpError(response); // Handle any HTTP errors
 
       // Parse the JSON response
       final data = json.decode(response.body);
+      if (data['tracks'] == null || data['tracks']['tracks'] == null) {
+        throw Exception('No tracks found in the response');
+      }
       List jsonResponse = data['tracks']['track']; // Extract the 'track' list from JSON
 
       // Convert the JSON response to a list of Music objects
@@ -52,7 +55,8 @@ class ApiService {
   /// Fetch music by artist from Last.fm
   /// Given an artist's name, this method fetches their top tracks from Last.fm.
   static Future<List<Music>> fetchMusicByArtist(String artist) async {
-    final url = '$lastFmBaseUrl?method=artist.gettoptracks&artist=$artist&api_key=$lastFmApiKey&format=json'; // Complete API URL
+    final encodedArtist = Uri.encodeComponent(artist);
+    final url = '$lastFmBaseUrl?method=artist.getTopTracks&artist=$encodedArtist&api_key=$lastFmApiKey&format=json'; // Complete API URL
 
     try {
       // Make the API call and wait for response (with 10-second timeout)
@@ -62,6 +66,9 @@ class ApiService {
 
       // Parse the JSON response
       final data = json.decode(response.body);
+      if (data['tracks'] == null || data['tracks']['tracks'] == null) {
+         throw Exception('No tracks found in the response');
+         }
       List jsonResponse = data['toptracks']['track']; // Extract the 'track' list for the artist
 
       // Convert the JSON response to a list of Music objects
@@ -83,7 +90,7 @@ class ApiService {
   /// Fetch playlists the LastFM API
   /// This method fetches a list of playlists created in LastFM.
   static Future<List<Playlist>> fetchPlaylists() async {
-    const url = '$lastFmBaseUrl?method=chart.getTopTracks&api_key=$lastFmApiKey&format=json'; // API Url
+    const url = '$lastFmBaseUrl?method=chart.getTopTracks&api_key=$lastFmApiKey&format=json'; // Complete API URL
 
     try {
       // Make the API call and wait for response (with 10-second timeout)
@@ -114,7 +121,8 @@ class ApiService {
   /// Search for music by title using Last.fm API
   /// Given a search query, this method fetches matching music tracks from Last.fm.
   static Future<List<Music>> searchMusic(String query) async {
-    final url = '$lastFmBaseUrl?method=track.search&track=$query&api_key=$lastFmApiKey&format=json'; // Complete API URL
+    final encodedQuery = Uri.encodeComponent(query); // Encodes the query to be URL-safe
+    final url = '$lastFmBaseUrl?method=track.search&track=$encodedQuery&api_key=$lastFmApiKey&format=json'; // Complete API URL
 
     try {
       // Make the API call and wait for response (with 10-second timeout)

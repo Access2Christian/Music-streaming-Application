@@ -8,10 +8,10 @@ class NowPlayingScreen extends StatefulWidget {
   const NowPlayingScreen({Key? key, required this.music}) : super(key: key);
 
   @override
-  _NowPlayingScreenState createState() => _NowPlayingScreenState();
+  NowPlayingScreenState createState() => NowPlayingScreenState();
 }
 
-class _NowPlayingScreenState extends State<NowPlayingScreen> {
+class NowPlayingScreenState extends State<NowPlayingScreen> {
   bool isPlaying = false; // Tracks whether the music is playing or paused
   double currentPosition = 0.0; // Current position of the song
   double totalDuration = 210.0; // Example total duration of the song

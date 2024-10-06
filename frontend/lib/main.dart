@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart'; // Import the logger package for logging
 import 'screens/home_screen.dart' as home; // Importing HomeScreen with an alias for clarity
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart' as login; // Importing LoginScreen with an alias for clarity
@@ -61,13 +62,14 @@ class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  MainScreenState createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0; // To track the current index of the bottom navigation bar
   late Future<List<Music>> _musicList; // To hold the future music list
   String _searchQuery = ''; // To hold the current search query
+  final Logger logger = Logger(); // Create an instance of Logger for logging
 
   @override
   void initState() {
@@ -87,6 +89,7 @@ class _MainScreenState extends State<MainScreen> {
   void _handleSearch(String query) {
     setState(() {
       _searchQuery = query; // Update the search query and rebuild the UI
+      logger.i('Search query updated: $_searchQuery'); // Log the search query update
     });
   }
 
@@ -139,6 +142,7 @@ class _MainScreenState extends State<MainScreen> {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator()); // Show loading indicator while fetching data
                       } else if (snapshot.hasError) {
+                        logger.e('Error fetching music: ${snapshot.error}'); // Log the error
                         return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -154,6 +158,7 @@ class _MainScreenState extends State<MainScreen> {
                                 onPressed: () {
                                   setState(() {
                                     _musicList = ApiService.fetchShazamCharts(); // Retry fetching music
+                                    logger.i('Retrying to fetch music'); // Log retry attempt
                                   });
                                 },
                                 child: const Text('Retry'), // Button to retry fetching music
@@ -172,7 +177,7 @@ class _MainScreenState extends State<MainScreen> {
                         return home.HomeScreen(
                           categorizedMusic: {'All Music': filteredMusic}, // Pass categorized music to HomeScreen
                           onPlay: (music) {
-                            print('Playing ${music.title} by ${music.artist}'); // Handle music play action
+                            logger.i('Playing ${music.title} by ${music.artist}'); // Log the play action
                           },
                         );
                       }

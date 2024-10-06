@@ -1,5 +1,6 @@
 # api/views.py
 
+import requests
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -57,4 +58,29 @@ class ProfileView(APIView):
         user = request.user
         # You can return more user-related information here if needed
         return Response({'username': user.username, 'email': user.email}, status=status.HTTP_200_OK)
+
+# Music View
+class MusicAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def get(self, request):
+        """
+        Fetches music data from the Shazam API.
+        """
+        shazam_url = 'https://shazam.p.rapidapi.com/charts/list'
+        headers = {
+            'x-rapidapi-host': 'shazam.p.rapidapi.com',
+            'x-rapidapi-key': '2eb727c693msh7f22be1c5aefefdp180abfjsn6a16de4195a2',
+        }
+
+        try:
+            response = requests.get(shazam_url, headers=headers)
+            if response.status_code == 200:
+                music_data = response.json().get('tracks', [])
+                return Response(music_data, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Failed to fetch music data'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

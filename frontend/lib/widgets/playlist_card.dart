@@ -9,10 +9,10 @@ class MusicCard extends StatefulWidget {
   const MusicCard({Key? key, required this.music, required this.onPlay}) : super(key: key);
 
   @override
-  _MusicCardState createState() => _MusicCardState();
+  MusicCardState createState() => MusicCardState();
 }
 
-class _MusicCardState extends State<MusicCard> {
+class MusicCardState extends State<MusicCard> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false; // To track if music is playing
   bool isLoading = false; // To track loading state

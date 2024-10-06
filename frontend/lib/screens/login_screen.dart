@@ -7,11 +7,11 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key); // Constructor for LoginScreen
 
   @override
-  _LoginScreenState createState() => _LoginScreenState(); // Create state for managing the screen's state
+  LoginScreenState createState() => LoginScreenState(); // Create state for managing the screen's state
 }
 
 // This class handles the internal state and behavior for the login screen.
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   // Controllers to manage input fields for username and password.
   final _usernameController = TextEditingController(); // Controller for the username input field
   final _passwordController = TextEditingController(); // Controller for the password input field
@@ -52,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // If login is successful (status code 200), navigate to the home screen
       if (response.statusCode == 200) {
+         if (!mounted) return; // Ensure widget is still mounted
         Navigator.of(context).pushReplacementNamed('/home');
       } else {
         final responseData = json.decode(response.body); // Parse response body

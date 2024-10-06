@@ -6,10 +6,10 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  RegisterScreenState createState() => RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class RegisterScreenState extends State<RegisterScreen> {
   // Controllers to manage input fields
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -24,9 +24,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Validate input fields
     if (username.isEmpty || password.isEmpty) {
       setState(() {
-        _errorMessage = 'Please fill in all fields';
+        _errorMessage = 'Please fill in all fields'; // Set error message
       });
-      return;
+      return; // Exit if fields are empty
     }
 
     const url = 'http://127.0.0.1:8000/api/register/'; // Backend API endpoint
@@ -46,26 +46,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       // Check for successful registration
       if (response.statusCode == 201) {
-        _usernameController.clear();
-        _passwordController.clear();
+        _usernameController.clear(); // Clear input fields
+        _passwordController.clear(); // Clear input fields
+        if (!mounted) return; // Check if the widget is still mounted
         Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login
       } else {
         // Extract error message from response
         final responseData = json.decode(response.body);
         setState(() {
-          _errorMessage = responseData['error'] ?? 'Failed to register';
+          _errorMessage = responseData['error'] ?? 'Failed to register'; // Set error message
         });
       }
     } catch (error) {
       // Handle error case
       setState(() {
-        _errorMessage = 'Error: $error';
+        _errorMessage = 'Error: $error'; // Set error message
       });
     } finally {
       // Stop loading spinner
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false; // Stop loading spinner
+        });
+      }
     }
   }
 
@@ -74,16 +77,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // Light gray background
       appBar: AppBar(
-        title: const Text('Register'),
+        title: const Text('Register'), // App bar title
         backgroundColor: const Color(0xFF4A90E2), // Soft blue app bar
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0), // Padding for the body
         child: Column(
           children: [
             // Username input field
             TextField(
-              controller: _usernameController,
+              controller: _usernameController, // Controller for username input
               decoration: const InputDecoration(
                 labelText: 'Username',
                 labelStyle: TextStyle(color: Color(0xFF4A90E2)), // Soft blue label color
@@ -101,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             // Password input field
             TextField(
-              controller: _passwordController,
+              controller: _passwordController, // Controller for password input
               decoration: const InputDecoration(
                 labelText: 'Password',
                 labelStyle: TextStyle(color: Color(0xFF4A90E2)), // Soft blue label color
@@ -116,13 +119,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               obscureText: true, // Hide password input
             ),
-            
+
             // Display error message if any
-            if (_errorMessage != null)
+            if (_errorMessage != null) // Check if there is an error message
               Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(top: 8.0), // Space above error message
                 child: Text(
-                  _errorMessage!,
+                  _errorMessage!, // Show error message
                   style: const TextStyle(color: Colors.red), // Error text color
                 ),
               ),
@@ -139,14 +142,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 14.0), // Adjust padding
               ),
-              child: _isLoading
+              child: _isLoading // Show loading indicator or button text
                   ? const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 2.0, // Spinner inside button
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Spinner color
+                      strokeWidth: 2.0, // Spinner width
                     )
                   : const Text(
-                      'Register', 
-                      style: TextStyle(fontSize: 18, color: Colors.white), // Button text
+                      'Register', // Button text
+                      style: TextStyle(fontSize: 18, color: Colors.white), // Button text style
                     ),
             ),
           ],

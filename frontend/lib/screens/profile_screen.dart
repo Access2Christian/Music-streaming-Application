@@ -4,10 +4,10 @@ class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
 
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  ProfileScreenState createState() => ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class ProfileScreenState extends State<ProfileScreen> {
   // TextEditingController instances for handling form input fields
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -35,15 +35,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _isLoading = true; // Begin showing the loading indicator when save starts
     });
-
+    
     // Simulate a delay to mimic a real network call (Replace with actual API call)
     await Future.delayed(const Duration(seconds: 2));
+
+    // Check if the widget is still mounted before using context
+    if (!mounted) return;
 
     setState(() {
       _isLoading = false; // Stop showing the loading indicator when save ends
     });
 
-    // Display success message
+    // Display success message using BuildContext, only if the widget is still mounted
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Profile updated successfully!")),
     );

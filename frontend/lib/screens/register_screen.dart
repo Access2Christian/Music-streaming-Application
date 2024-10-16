@@ -11,15 +11,15 @@ class RegisterScreen extends StatefulWidget {
 
 class RegisterScreenState extends State<RegisterScreen> {
   // Controllers to manage input fields
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController(); // Updated to username
+  final _passwordController = TextEditingController(); // Password controller
   String? _errorMessage; // For displaying error messages
   bool _isLoading = false; // Tracks loading state during registration
 
   // Function to register user with the backend
   Future<void> _registerUser() async {
-    final username = _usernameController.text;
-    final password = _passwordController.text;
+    final username = _usernameController.text; // Get username input
+    final password = _passwordController.text; // Get password input
 
     // Validate input fields
     if (username.isEmpty || password.isEmpty) {
@@ -41,13 +41,13 @@ class RegisterScreenState extends State<RegisterScreen> {
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'username': username, 'password': password}),
+        body: json.encode({'username': username, 'password': password}), // Use username and password
       );
 
       // Check for successful registration
       if (response.statusCode == 201) {
-        _usernameController.clear(); // Clear input fields
-        _passwordController.clear(); // Clear input fields
+        _usernameController.clear(); // Clear username input field
+        _passwordController.clear(); // Clear password input field
         if (!mounted) return; // Check if the widget is still mounted
         Navigator.of(context).pushReplacementNamed('/login'); // Navigate to login
       } else {
@@ -88,7 +88,7 @@ class RegisterScreenState extends State<RegisterScreen> {
             TextField(
               controller: _usernameController, // Controller for username input
               decoration: const InputDecoration(
-                labelText: 'Username',
+                labelText: 'Username', // Changed to Username
                 labelStyle: TextStyle(color: Color(0xFF4A90E2)), // Soft blue label color
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: Color(0xFF4A90E2)), // Soft blue border
@@ -99,6 +99,7 @@ class RegisterScreenState extends State<RegisterScreen> {
                 filled: true,
                 fillColor: Color(0xFFE0E0E0), // Light gray background for input
               ),
+              keyboardType: TextInputType.text, // Set keyboard type to text
             ),
             const SizedBox(height: 16), // Space between input fields
 
@@ -140,7 +141,10 @@ class RegisterScreenState extends State<RegisterScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.0), // Rounded corners for button
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14.0), // Adjust padding
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40, // Horizontal padding
+                  vertical: 14.0, // Adjust padding
+                ),
               ),
               child: _isLoading // Show loading indicator or button text
                   ? const CircularProgressIndicator(

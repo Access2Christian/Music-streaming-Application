@@ -1,4 +1,4 @@
-/// Represents a Music object with details such as title, artist, album, duration, album cover URL, and audio URL.
+/// Represents a Music object with details such as title, artist, album, duration, album cover URL, audio URL, and genre.
 class Music {
   final String title; // Title of the song
   final String artist; // Artist of the song
@@ -6,15 +6,17 @@ class Music {
   final String? duration; // Duration of the song (nullable)
   final String? albumCoverUrl; // URL for the album cover image (nullable)
   final String? audioUrl; // URL for the audio file (nullable)
+  final String? genre; // Genre of the song (nullable)
 
-  /// Creates a [Music] instance with required [title], [artist], and optional [album], [duration], [albumCoverUrl], and [audioUrl].
+  /// Creates a [Music] instance with required [title], [artist], and optional [album], [duration], [albumCoverUrl], audioUrl, and genre.
   Music({
     required this.title,
     required this.artist,
     this.album,
     this.duration,
     this.albumCoverUrl,
-    this.audioUrl, // Include audioUrl in the constructor
+    this.audioUrl,
+    this.genre,
   });
 
   /// Creates a [Music] instance from a JSON object.
@@ -27,10 +29,11 @@ class Music {
     return Music(
       title: json['title'],
       artist: json['artist'],
-      album: json['album'],
-      duration: json['duration'],
-      albumCoverUrl: json['albumCoverUrl'], // Ensure this matches your API's response
-      audioUrl: json['audioUrl'], // Add audioUrl to the parsing
+      album: json['album'] as String?, // Cast to String? to ensure nullability
+      duration: json['duration'] as String?, // Cast to String? to ensure nullability
+      albumCoverUrl: json['albumCoverUrl'] as String?, // Cast to String? to ensure nullability
+      audioUrl: json['audioUrl'] as String?, // Cast to String? to ensure nullability
+      genre: json['genre'] as String?, // Cast to String? to ensure nullability
     );
   }
 
@@ -42,7 +45,8 @@ class Music {
       'album': album,
       'duration': duration,
       'albumCoverUrl': albumCoverUrl,
-      'audioUrl': audioUrl, // Include audio URL in the JSON
+      'audioUrl': audioUrl,
+      'genre': genre,
     };
   }
 }

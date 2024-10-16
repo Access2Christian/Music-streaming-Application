@@ -17,11 +17,12 @@ class LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController(); // Controller for the password input field
   String? _errorMessage; // Variable to store error messages
   bool _isLoading = false; // State variable to track if a login request is in progress
+  bool _obscureText = true; // Tracks whether the password is obscured
 
   // This method handles the login action by making an HTTP POST request to the login API.
   Future<void> _loginUser() async {
-    final username = _usernameController.text; // Get the username entered by the user
-    final password = _passwordController.text; // Get the password entered by the user
+    final username = _usernameController.text.trim(); // Get the username entered by the user
+    final password = _passwordController.text.trim(); // Get the password entered by the user
 
     // Check if the username or password is empty
     if (username.isEmpty || password.isEmpty) {
@@ -43,7 +44,7 @@ class LoginScreenState extends State<LoginScreen> {
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'username': username, 'password': password}),
+        body: json.encode({'username': username, 'password': password}), // Change 'email' to 'username'
       );
 
       setState(() {
@@ -52,7 +53,7 @@ class LoginScreenState extends State<LoginScreen> {
 
       // If login is successful (status code 200), navigate to the home screen
       if (response.statusCode == 200) {
-         if (!mounted) return; // Ensure widget is still mounted
+        if (!mounted) return; // Ensure widget is still mounted
         Navigator.of(context).pushReplacementNamed('/home');
       } else {
         final responseData = json.decode(response.body); // Parse response body
@@ -94,7 +95,7 @@ class LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
-                    labelText: 'Username', // Label for username input
+                    labelText: 'Username', // Change label to 'Username'
                     labelStyle: const TextStyle(color: Color(0xFF4A90E2)), // Label color
                     focusedBorder: OutlineInputBorder(
                       borderSide: const BorderSide(color: Color(0xFF4A90E2)), // Blue border when focused
@@ -107,11 +108,13 @@ class LoginScreenState extends State<LoginScreen> {
                     fillColor: const Color(0xFFB0BEC5), // Light gray background
                   ),
                   style: const TextStyle(color: Colors.black), // Input text color
+                  keyboardType: TextInputType.text, // Ensure keyboard is appropriate for username input
                 ),
                 const SizedBox(height: 16), // Space between the username and password fields
-                // Password input field
+                // Password input field with visibility toggle
                 TextField(
                   controller: _passwordController,
+                  obscureText: _obscureText, // Hide password text for security
                   decoration: InputDecoration(
                     labelText: 'Password', // Label for password input
                     labelStyle: const TextStyle(color: Color(0xFF4A90E2)), // Label color
@@ -124,8 +127,18 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                     filled: true, // Filled background
                     fillColor: const Color(0xFFB0BEC5), // Light gray background
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureText ? Icons.visibility_off : Icons.visibility,
+                        color: const Color(0xFF4A90E2),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText; // Toggle the obscureText state
+                        });
+                      },
+                    ),
                   ),
-                  obscureText: true, // Hide password text for security
                   style: const TextStyle(color: Colors.black), // Input text color
                 ),
                 if (_errorMessage != null) // Check for an error message
@@ -176,5 +189,12 @@ class LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose(); // Dispose username controller
+    _passwordController.dispose(); // Dispose password controller
+    super.dispose();
   }
 }

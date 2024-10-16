@@ -3,7 +3,7 @@ import '../models/music.dart';
 import 'dart:async';
 
 class NowPlayingScreen extends StatefulWidget {
-  final Music music; // The music being played
+  final Music music; // Music being played, passed from parent widget
 
   const NowPlayingScreen({Key? key, required this.music}) : super(key: key);
 
@@ -12,112 +12,115 @@ class NowPlayingScreen extends StatefulWidget {
 }
 
 class NowPlayingScreenState extends State<NowPlayingScreen> {
-  bool isPlaying = false; // Tracks whether the music is playing or paused
-  double currentPosition = 0.0; // Current position of the song
-  double totalDuration = 210.0; // Example total duration of the song
-  Timer? _timer; // Timer for song progress
+  bool isPlaying = false; // Tracks whether music is playing or paused
+  double currentPosition = 0.0; // Tracks current position of the song
+  final double totalDuration = 210.0; // Example total duration of the song (in seconds)
+  Timer? _timer; // Timer for simulating song progress
 
   @override
   void dispose() {
-    _timer?.cancel(); // Cancels timer when screen is closed
+    _timer?.cancel(); // Cancel timer when screen is closed to prevent memory leaks
     super.dispose();
   }
 
-  // Starts the timer to simulate music playback
+  // Simulates music playback progress with a 1-second interval timer
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         if (currentPosition < totalDuration) {
-          currentPosition += 1; // Increases the position each second
+          currentPosition += 1; // Increment song progress by 1 second
         } else {
-          _timer?.cancel(); // Stops the timer when the song ends
+          _timer?.cancel(); // Stop timer when song finishes
         }
       });
     });
   }
 
-  // Toggles between play and pause
+  // Toggles between play and pause states
   void _togglePlayPause() {
     setState(() {
-      isPlaying = !isPlaying;
-      isPlaying ? _startTimer() : _timer?.cancel(); // Pauses or resumes the timer
+      isPlaying = !isPlaying; // Toggle play/pause
+      isPlaying ? _startTimer() : _timer?.cancel(); // Start or stop timer
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFECEFF1), // Light gray background
+      backgroundColor: const Color(0xFFECEFF1), // Light gray background for subtle design
       appBar: AppBar(
         title: const Text("Now Playing"),
         backgroundColor: const Color(0xFF4A90E2), // Soft blue AppBar
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center, // Center all content
         children: [
-          _buildAlbumCover(),
-          const SizedBox(height: 20), // Spacing between album and song details
-          _buildSongTitle(),
+          _buildAlbumCover(), // Display album cover
+          const SizedBox(height: 20), // Spacer between elements
+          _buildSongTitle(), // Display song title
           const SizedBox(height: 10),
-          _buildArtistName(),
+          _buildArtistName(), // Display artist name
           const SizedBox(height: 20),
-          _buildPlaybackControls(),
+          _buildPlaybackControls(), // Play, pause, next, and previous buttons
           const SizedBox(height: 20),
-          _buildSeekBar(),
+          _buildSeekBar(), // Seek bar for song progress
           const SizedBox(height: 20),
-          _buildDurationRow(),
+          _buildDurationRow(), // Display current position and total duration
         ],
       ),
     );
   }
 
-  // Displays the album cover of the song
+  // Widget to display the album cover with rounded corners
   Widget _buildAlbumCover() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(15.0), // Rounded corners for the image
+      borderRadius: BorderRadius.circular(15.0), // Rounded corners
       child: Image.network(
-        widget.music.albumCoverUrl ?? 'https://via.placeholder.com/250', // Placeholder if no album cover
+        widget.music.albumCoverUrl ?? 'https://via.placeholder.com/250', // Placeholder for missing album cover
         fit: BoxFit.cover,
         height: 250,
         width: 250,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 250,
-            width: 250,
-            color: Colors.grey, // Fallback color if image fails
-            child: const Icon(Icons.error, color: Colors.red), // Error icon
-          );
-        },
+        errorBuilder: (context, error, stackTrace) => _buildErrorAlbumCover(), // Fallback for load failure
       ),
     );
   }
 
-  // Displays the song title
+  // Fallback widget for album cover loading error
+  Widget _buildErrorAlbumCover() {
+    return Container(
+      height: 250,
+      width: 250,
+      color: Colors.grey, // Gray background
+      child: const Icon(Icons.error, color: Colors.red), // Red error icon
+    );
+  }
+
+  // Widget to display song title with styling
   Widget _buildSongTitle() {
     return Text(
-      widget.music.title,
+      widget.music.title, // Accessing song title from Music model
       style: const TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF4A90E2), // Soft blue for song title
+        color: Color(0xFF4A90E2), // Soft blue text color
       ),
       textAlign: TextAlign.center,
     );
   }
 
-  // Displays the artist name
+  // Widget to display artist name with styling
   Widget _buildArtistName() {
     return Text(
-      widget.music.artist,
+      widget.music.artist, // Accessing artist name from Music model
       style: const TextStyle(
         fontSize: 18,
-        color: Color(0xFF5A4D3A), // Slightly darker tone for artist name
+        color: Color(0xFF5A4D3A), // Darker color for artist name
       ),
       textAlign: TextAlign.center,
     );
   }
 
-  // Controls for play, pause, previous, and next
+  // Widget for playback controls: previous, play/pause, next
   Widget _buildPlaybackControls() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -125,59 +128,59 @@ class NowPlayingScreenState extends State<NowPlayingScreen> {
         IconButton(
           icon: const Icon(Icons.skip_previous, size: 40, color: Color(0xFF5A4D3A)),
           onPressed: () {
-            // Logic to play the previous song
+            // Logic for previous song action
           },
         ),
         IconButton(
           icon: Icon(
-            isPlaying ? Icons.pause : Icons.play_arrow,
+            isPlaying ? Icons.pause : Icons.play_arrow, // Toggle between pause/play
             size: 60,
-            color: const Color(0xFF4A90E2), // Soft blue for play/pause button
+            color: const Color(0xFF4A90E2), // Soft blue play/pause button
           ),
-          onPressed: _togglePlayPause, // Toggles play/pause functionality
+          onPressed: _togglePlayPause, // Toggle play/pause state
         ),
         IconButton(
           icon: const Icon(Icons.skip_next, size: 40, color: Color(0xFF5A4D3A)),
           onPressed: () {
-            // Logic to play the next song
+            // Logic for next song action
           },
         ),
       ],
     );
   }
 
-  // Seek bar for tracking song progress
+  // Widget for seek bar (progress bar) to display song progress
   Widget _buildSeekBar() {
     return Slider(
-      value: currentPosition, // Current position of the song
+      value: currentPosition, // Current position of song
       onChanged: (value) {
         setState(() {
-          currentPosition = value; // Updates the current position
+          currentPosition = value; // Update song position manually
         });
       },
       min: 0,
       max: totalDuration, // Total duration of the song
-      activeColor: const Color(0xFF4A90E2), // Soft blue for active part of the slider
+      activeColor: const Color(0xFF4A90E2), // Soft blue for active part of slider
       inactiveColor: const Color(0xFFC8B591), // Light beige for inactive part
     );
   }
 
-  // Displays the current position and total duration of the song
+  // Widget to display current position and total duration of the song
   Widget _buildDurationRow() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Space between time stamps
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            _formatDuration(currentPosition), // Formats the current position
-            style: const TextStyle(color: Color(0xFF5A4D3A)),
+            _formatDuration(currentPosition), // Format current position (MM:SS)
+            style: const TextStyle(color: Color(0xFF5A4D3A)), // Style for text
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            _formatDuration(totalDuration), // Formats the total duration
+            _formatDuration(totalDuration), // Format total duration (MM:SS)
             style: const TextStyle(color: Color(0xFF5A4D3A)),
           ),
         ),
@@ -185,10 +188,10 @@ class NowPlayingScreenState extends State<NowPlayingScreen> {
     );
   }
 
-  // Helper function to format duration into minutes and seconds
+  // Helper function to format duration (in seconds) into MM:SS format
   String _formatDuration(double seconds) {
-    final minutes = (seconds / 60).floor();
-    final secs = (seconds % 60).floor();
-    return '${minutes.toString().padLeft(1, '0')}:${secs.toString().padLeft(2, '0')}'; // MM:SS format
+    final minutes = (seconds / 60).floor(); // Extract minutes
+    final secs = (seconds % 60).floor(); // Extract seconds
+    return '${minutes.toString().padLeft(1, '0')}:${secs.toString().padLeft(2, '0')}'; // Return formatted string
   }
 }

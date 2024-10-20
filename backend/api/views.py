@@ -1,5 +1,3 @@
-# api/views.py
-
 import requests
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,79 +6,115 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
+from decouple import config
+from users.models import UserProfile  # Import UserProfile from users app
 
-# Register View
+
 class RegisterView(APIView):
+    """User registration view."""
+    
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
 
+        # Validate input
         if not username or not password:
             return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Create user and token
         user = User.objects.create_user(username=username, password=password)
         token = Token.objects.create(user=user)
+
         return Response({'token': token.key}, status=status.HTTP_201_CREATED)
 
-# Login View
+
 class LoginView(APIView):
+    """User login view."""
+    
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
 
+        # Validate input
         if not username or not password:
             return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Authenticate user
         user = authenticate(username=username, password=password)
 
         if user is not None:
             token, created = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({
+                'token': token.key,
+                'message': 'New token created' if created else 'Reused existing token'
+            }, status=status.HTTP_200_OK)
+        
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-# Logout View
+
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    """User logout view."""
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        request.user.auth_token.delete()  # Delete the user's token
+        # Log the user out by deleting their token
+        Token.objects.filter(user=request.user).delete()
         return Response({'message': 'Successfully logged out'}, status=status.HTTP_204_NO_CONTENT)
 
-# Profile View
+
 class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    """User profile view."""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        # You can return more user-related information here if needed
-        return Response({'username': user.username, 'email': user.email}, status=status.HTTP_200_OK)
+        user = request.user  # Get the currently authenticated user
 
-# Music View
+        # Fetch user profile data
+        try:
+            profile = UserProfile.objects.get(user=user)
+            user_data = {
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'gender': profile.gender,
+                'date_of_birth': profile.date_of_birth,
+                'city': profile.city,
+                'country': profile.country,
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
+
+        except UserProfile.DoesNotExist:
+            return Response({'error': 'Profile does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class MusicAPIView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    """Fetch music data from the Shazam API."""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """
-        Fetches music data from the Shazam API.
-        """
         shazam_url = 'https://shazam.p.rapidapi.com/charts/list'
         headers = {
             'x-rapidapi-host': 'shazam.p.rapidapi.com',
-            'x-rapidapi-key': '2eb727c693msh7f22be1c5aefefdp180abfjsn6a16de4195a2',
+            'x-rapidapi-key': config('SHAZAM_API_KEY'),  # Securely fetch the API key
         }
 
+        # Fetch music data
         try:
             response = requests.get(shazam_url, headers=headers)
-            if response.status_code == 200:
-                music_data = response.json().get('tracks', [])
-                return Response(music_data, status=status.HTTP_200_OK)
-            else:
-                return Response({'error': 'Failed to fetch music data'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            response.raise_for_status()  # Raise exception for bad status codes
+            music_data = response.json().get('tracks', [])
+            return Response(music_data, status=status.HTTP_200_OK)
 
+        # Handle specific request errors
+        except requests.exceptions.HTTPError as http_err:
+            return Response({'error': f'HTTP error occurred: {http_err}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except requests.exceptions.ConnectionError:
+            return Response({'error': 'Connection error. Please check your network.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except requests.exceptions.Timeout:
+            return Response({'error': 'The request timed out. Please try again later.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            return Response({'error': f'An error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

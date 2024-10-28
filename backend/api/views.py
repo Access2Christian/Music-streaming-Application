@@ -1,5 +1,3 @@
-import os
-from dotenv import load_dotenv
 import requests
 from rest_framework import status
 from rest_framework.response import Response
@@ -12,10 +10,9 @@ from decouple import config
 from users.models import UserProfile  # Import UserProfile from users app
 
 
-
 class RegisterView(APIView):
     """User registration view."""
-    
+
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -36,7 +33,7 @@ class RegisterView(APIView):
 
 class LoginView(APIView):
     """User login view."""
-    
+
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -54,7 +51,7 @@ class LoginView(APIView):
                 'token': token.key,
                 'message': 'New token created' if created else 'Reused existing token'
             }, status=status.HTTP_200_OK)
-        
+
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -94,30 +91,24 @@ class ProfileView(APIView):
             return Response({'error': 'Profile does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 
-# Load environment variables
-load_dotenv()
-
 class MusicAPIView(APIView):
     """Fetch music data from the Shazam API."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         shazam_url = 'https://shazam.p.rapidapi.com/charts/list'
-        
-        # Access environment variables
-        SHZAM_API_KEY = os.getenv('SHAZAM_API_KEY')
-        SHZAM_API_HOST = os.getenv('x-rapidapi-host')
+
+        # Access environment variables using decouple.config
+        SHZAM_API_KEY = config('SHAZAM_API_KEY')
+        SHZAM_API_HOST = config('x-rapidapi-host')
 
         headers = {
             'x-rapidapi-host': SHZAM_API_HOST,
             'x-rapidapi-key': SHZAM_API_KEY,
         }
 
-        # Make the API call
-        response = requests.get(shazam_url, headers=headers)
-
-        # Fetch music data
         try:
+            # Make the API call once
             response = requests.get(shazam_url, headers=headers)
             response.raise_for_status()  # Raise exception for bad status codes
             music_data = response.json().get('tracks', [])
@@ -132,3 +123,4 @@ class MusicAPIView(APIView):
             return Response({'error': 'The request timed out. Please try again later.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             return Response({'error': f'An error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

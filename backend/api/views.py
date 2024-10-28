@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import requests
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,6 +10,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from decouple import config
 from users.models import UserProfile  # Import UserProfile from users app
+
 
 
 class RegisterView(APIView):
@@ -91,16 +94,27 @@ class ProfileView(APIView):
             return Response({'error': 'Profile does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 
+# Load environment variables
+load_dotenv()
+
 class MusicAPIView(APIView):
     """Fetch music data from the Shazam API."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         shazam_url = 'https://shazam.p.rapidapi.com/charts/list'
+        
+        # Access environment variables
+        SHZAM_API_KEY = os.getenv('SHAZAM_API_KEY')
+        SHZAM_API_HOST = os.getenv('x-rapidapi-host')
+
         headers = {
-            'x-rapidapi-host': 'shazam.p.rapidapi.com',
-            'x-rapidapi-key': config('SHAZAM_API_KEY'),  # Securely fetch the API key
+            'x-rapidapi-host': SHZAM_API_HOST,
+            'x-rapidapi-key': SHZAM_API_KEY,
         }
+
+        # Make the API call
+        response = requests.get(shazam_url, headers=headers)
 
         # Fetch music data
         try:

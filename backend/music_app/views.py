@@ -4,10 +4,14 @@ import os
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from .models import Music 
+from .models import Music
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Access environment variables
-SHZAM_API_KEY = os.getenv('x-rapidapi-key')
+SHZAM_API_KEY = os.getenv('SHAZAM_API_KEY')
 SHZAM_API_HOST = os.getenv('x-rapidapi-host')
 
 

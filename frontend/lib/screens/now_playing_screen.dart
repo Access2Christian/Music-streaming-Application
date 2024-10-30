@@ -76,7 +76,8 @@ class NowPlayingScreenState extends State<NowPlayingScreen> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(15.0), // Rounded corners
       child: Image.network(
-        widget.music.albumCoverUrl ?? 'https://via.placeholder.com/250', // Placeholder for missing album cover
+        widget.music.albumCoverUrl?.replaceAll('http://', 'https://') ?? // Use secure URL format
+            'https://images.pexels.com/photos/860707/pexels-photo-860707.jpeg', // Pexels image URL (placeholder)
         fit: BoxFit.cover,
         height: 250,
         width: 250,

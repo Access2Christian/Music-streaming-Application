@@ -3,9 +3,12 @@ import 'package:http/http.dart' as http; // Import HTTP package for API requests
 import 'package:shared_preferences/shared_preferences.dart'; // To store token locally
 import '../models/music.dart'; // Import the Music model
 import 'dart:async'; // For handling TimeoutException
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // For loading environment variables
 
 class ApiService {
   static const String baseApiUrl = 'http://127.0.0.1:8000/api/'; // Base API URL for Django backend
+  static const String pexelsApiUrl = 'https://api.pexels.com/v1/search'; // Base API URL for Pexels
+  static final String pexelsApiKey = dotenv.env['PEXELS_API_KEY']!; // Load Pexels API key from .env
 
   static void _handleHttpError(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -33,6 +36,28 @@ class ApiService {
       return List<Music>.from(data.map((song) => Music.fromJson(song))); // Convert JSON to Music objects
     } catch (error) {
       throw _handleFetchError(error, 'music data');
+    }
+  }
+
+  /// Fetch images from the Pexels API based on a search query.
+  static Future<List<String>> fetchPexelsImages(String query) async {
+    final url = Uri.parse('$pexelsApiUrl?query=$query&per_page=10'); // Construct the API URL
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': pexelsApiKey, // Use Pexels API key
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      _handleHttpError(response);
+
+      final data = jsonDecode(response.body);
+      return List<String>.from(data['photos'].map((photo) => photo['src']['medium'])); // Extract image URLs
+    } catch (error) {
+      throw _handleFetchError(error, 'Pexels image data');
     }
   }
 

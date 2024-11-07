@@ -5,12 +5,11 @@ from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
-SHAZAM_API_HOST = config('x-rapidapi-host')
-SHAZAM_API_KEY = config('SHAZAM_API_KEY')
+SECRET_KEY = config('SECRET_KEY') 
+FREESOUND_API_KEY = config('FREESOUND_API_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool) # Ensures DEBUG is treated as a boolean
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Adjust as necessary for production
 
@@ -23,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',  # Make sure this is installed
+    'rest_framework.authtoken', 
     'corsheaders',  # CORS for cross-origin requests
     'users',
     'api',

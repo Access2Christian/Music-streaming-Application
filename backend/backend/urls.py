@@ -8,5 +8,4 @@ urlpatterns = [
     path('api/', include('api.urls')),  # Include the api app's URLs
     path('api/', include('music_app.urls')),  # Include music_app's URLs
     path('api-token-auth/', obtain_auth_token),  # URL to generate token
-
 ]

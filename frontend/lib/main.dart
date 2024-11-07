@@ -100,13 +100,13 @@ class MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     // Initialize music list by fetching data from API on app start
-    _musicList = ApiService.fetchShazamCharts();
+    _musicList = ApiService.fetchFreesoundMusic();
   }
 
   // Method to retry fetching music
   void _retryFetchMusic() {
     setState(() {
-      _musicList = ApiService.fetchShazamCharts(); // Retry fetching the music
+      _musicList = ApiService.fetchFreesoundMusic(); // Retry fetching the music
       logger.i('Retrying to fetch music'); // Log retry attempt
     });
   }

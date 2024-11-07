@@ -1,129 +1,77 @@
-import http.client
+import requests
 import json
 import os
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 from .models import Music
 from dotenv import load_dotenv
-import os
+from rest_framework.permissions import AllowAny  # Import permission to allow public access
+from rest_framework.decorators import api_view, permission_classes  # Import necessary decorators
 
+# Load environment variables
 load_dotenv()
 
-# Access environment variables
-SHZAM_API_KEY = os.getenv('SHAZAM_API_KEY')
-SHZAM_API_HOST = os.getenv('x-rapidapi-host')
+# Access Freesound API key from environment variables
+FREESOUND_API_KEY = os.getenv('FREESOUND_API_KEY')
 
-
-@login_required
-def fetch_local_music(request):
+def fetch_music_from_freesound(search_term):
     """
-    Fetch and return music data from the local database.
+    Fetch music details from the Freesound API based on a search term.
+    This function makes a GET request to the Freesound API and returns the search results as JSON.
     """
-    try:
-        music_data = Music.objects.all().values('title', 'artist', 'release_date', 'album_art')
-        return JsonResponse(list(music_data), safe=False)
-    except Exception as e:
-        return JsonResponse({'error': f"An error occurred: {e}"}, status=500)
-
-
-def get_latest_release(artist_id):
-    """
-    Fetch the latest release of an artist from the Shazam API.
-    """
-    conn = http.client.HTTPSConnection(SHZAM_API_HOST)
+    url = f'https://freesound.org/apiv2/search/text/?query={search_term}'  # Freesound search endpoint
     headers = {
-        'x-rapidapi-key': SHZAM_API_KEY,
-        'x-rapidapi-host': SHZAM_API_HOST
+        'Authorization': f'Token {FREESOUND_API_KEY}',  # Use the API token for authentication
     }
 
     try:
-        conn.request("GET", f"/artists/get-latest-release?id={artist_id}&l=en-US", headers=headers)
-        res = conn.getresponse()
-        data = res.read()
-        conn.close()
-        
-        decoded_data = data.decode("utf-8")
-        music_data = json.loads(decoded_data)
-        return music_data.get('data', None)
-
+        response = requests.get(url, headers=headers)  # Make the GET request to Freesound API
+        response.raise_for_status()  # Check if the request was successful (status code 200)
+        return response.json().get('results', None)  # Return results or None if not found
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")  # Log HTTP errors (e.g., 404, 500)
+        return None  # Return None if there's an error fetching data
     except Exception as e:
-        print(f"Error fetching data from Shazam API: {e}")
+        print(f"Error fetching music from Freesound API: {e}")  # Log any other errors
         return None
 
-
-@csrf_exempt
-@login_required
-def latest_release_view(request, artist_id):
-    """
-    Django view to fetch and return the latest release for an artist as JSON.
-    """
-    if request.method == 'GET':
-        latest_release = get_latest_release(artist_id)
-        if latest_release:
-            return display_music_data(latest_release)
-        else:
-            return JsonResponse({'error': 'No data found for the provided artist ID'}, status=404)
-    else:
-        return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
-
-
-def display_music_data(music_data):
-    """
-    Extract relevant music information and return it as a JSON response.
-    """
-    if isinstance(music_data, list) and len(music_data) > 0:
-        music_data = music_data[0]
-
-    if 'attributes' in music_data:
-        response = {
-            'track_title': music_data['attributes'].get('title', 'Unknown Title'),
-            'artist_name': music_data['attributes'].get('artistName', 'Unknown Artist'),
-            'release_date': music_data['attributes'].get('releaseDate', 'Unknown Date'),
-            'album_art': music_data['attributes'].get('artwork', {}).get('url', 'No Artwork Available'),
-        }
-        return JsonResponse(response)
-    else:
-        return JsonResponse({'error': 'Attributes missing from the music data'}, status=400)
-
-
-def fetch_music(search_term):
-    """
-    Fetch music details from Shazam API based on a search term.
-    """
-    conn = http.client.HTTPSConnection(SHZAM_API_HOST)
-    headers = {
-        'x-rapidapi-key': SHZAM_API_KEY,
-        'x-rapidapi-host': SHZAM_API_HOST
-    }
-
-    try:
-        conn.request("GET", f"/search?term={search_term}&locale=en-US&offset=0&limit=5", headers=headers)
-        res = conn.getresponse()
-        data = res.read()
-        conn.close()
-
-        decoded_data = data.decode("utf-8")
-        search_data = json.loads(decoded_data)
-        return search_data.get('tracks', None)
-
-    except Exception as e:
-        print(f"Error fetching music from Shazam API: {e}")
-        return None
-
-
-@csrf_exempt
-@login_required
+@csrf_exempt  # Exempt CSRF protection to allow for requests from any client (use with caution)
+@api_view(['GET'])  # Only allow GET requests for this endpoint
+@permission_classes([AllowAny])  # Allow any user (authenticated or not) to access this view
 def fetch_music_view(request, search_term):
     """
     Django view to fetch and return music data based on a search term as JSON.
+    This is the endpoint that users will call to get music based on a search term.
+    It also allows public access without authentication.
     """
-    if request.method == 'GET':
-        search_results = fetch_music(search_term)
+    if request.method == 'GET':  # Only respond to GET requests
+        search_results = fetch_music_from_freesound(search_term)  # Call function to fetch data from Freesound
         if search_results:
-            return display_music_data(search_results['hits'])
+            return display_freesound_data(search_results)  # Display data if available
         else:
-            return JsonResponse({'error': 'No data found for the provided search term'}, status=404)
+            return JsonResponse({'error': 'No data found for the provided search term'}, status=404)  # Return error if no data found
     else:
-        return JsonResponse({'error': 'Invalid HTTP method'}, status=405)
+        return JsonResponse({'error': 'Invalid HTTP method'}, status=405)  # Return error for methods other than GET
+
+def display_freesound_data(music_data):
+    """
+    Extract relevant music information from Freesound data and return as JSON response.
+    This function formats the data into a list of dictionaries with music details
+    that will be returned as a JSON response to the user.
+    """
+    results = []
+    for item in music_data:
+        # For each item, extract relevant fields and prepare them for the response
+        results.append({
+            'track_title': item.get('name', 'Unknown Title'),  # Track title
+            'description': item.get('description', 'No Description Available'),  # Track description
+            'duration': item.get('duration', 'Unknown Duration'),  # Track duration
+            'preview_url': item.get('previews', {}).get('preview-lq-mp3', 'No Preview Available'),  # Preview URL
+            'license': item.get('license', 'Unknown License'),  # License type
+        })
+
+    # Return the formatted data as a JSON response
+    return JsonResponse(results, safe=False)  # 'safe=False' allows the response to be a list
+
+
 

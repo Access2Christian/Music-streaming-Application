@@ -18,11 +18,11 @@ class PlaylistScreenState extends State<PlaylistScreen> {
   @override
   void initState() {
     super.initState();
-    fetchPlaylists(); // Fetch playlists when the screen is initialized
+    fetchFreesoundMusic(); // Fetch playlists when the screen is initialized
   }
 
   /// Fetches playlists from the API and updates the UI based on the result.
-  Future<void> fetchPlaylists() async {
+  Future<void> fetchFreesoundMusic() async {
     setState(() {
       isLoading = true; // Set loading to true while data is being fetched
       errorMessage = ''; // Clear any previous error messages
@@ -30,7 +30,7 @@ class PlaylistScreenState extends State<PlaylistScreen> {
 
     try {
       // Fetch playlists from the API service
-      List<Playlist> fetchedPlaylists = await ApiService.fetchPlaylists() as List<Playlist>;
+      List<Playlist> fetchedPlaylists = await ApiService.fetchFreesoundMusic() as List<Playlist>;
       setState(() {
         playlists = fetchedPlaylists; // Update the state with the fetched playlists
       });
@@ -57,12 +57,12 @@ class PlaylistScreenState extends State<PlaylistScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh), // Icon for refreshing the playlist list
-            onPressed: fetchPlaylists, // Fetch playlists again when refresh is tapped
+            onPressed: fetchFreesoundMusic, // Fetch playlists again when refresh is tapped
           ),
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: fetchPlaylists, // Enable pull-to-refresh functionality
+        onRefresh: fetchFreesoundMusic, // Enable pull-to-refresh functionality
         child: isLoading
             ? const Center(
                 child: CircularProgressIndicator(
@@ -94,7 +94,7 @@ class PlaylistScreenState extends State<PlaylistScreen> {
               backgroundColor: const Color(0xFF4A90E2), // Blue button color
               foregroundColor: Colors.white, // White text color for button
             ),
-            onPressed: fetchPlaylists, // Retry fetching playlists when the button is pressed
+            onPressed: fetchFreesoundMusic, // Retry fetching playlists when the button is pressed
             child: const Text("Retry"), // Button text
           ),
         ],
